@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <ItemGroup>
     <ProjectReference Include="..\SlotBook.Infrastructure\SlotBook.Infrastructure.csproj" />
@@ -16,6 +16,7 @@
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
+    <UserSecretsId>0eb0b262-de47-42b6-afc1-875a4bea1735</UserSecretsId>
   </PropertyGroup>
 
 </Project>
