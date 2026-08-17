@@ -22,6 +22,7 @@ coverage*.xml
 # Secrets & local config
 .env
 CLAUDE.local.md
+notes/
 appsettings.Development.local.json
 appsettings.Local.json
 
