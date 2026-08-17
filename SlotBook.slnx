@@ -1,0 +1,11 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/SlotBook.Api/SlotBook.Api.csproj" />
+    <Project Path="src/SlotBook.Core/SlotBook.Core.csproj" />
+    <Project Path="src/SlotBook.Infrastructure/SlotBook.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/SlotBook.Api.IntegrationTests/SlotBook.Api.IntegrationTests.csproj" />
+    <Project Path="tests/SlotBook.Core.Tests/SlotBook.Core.Tests.csproj" />
+  </Folder>
+</Solution>
