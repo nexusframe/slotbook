@@ -42,8 +42,9 @@ ASP.NET Core Identity.
   that are new ground here: spike in a throwaway branch, delete the spike, then test-first
   the real implementation. Never write a test for an API whose shape is still unknown.
 - **Never `git commit`.** Propose the message; Leto commits. Same for push, PR, branch creation.
-- Trunk-based on `main`. Short-lived branches, one PR per slice, conventional commits.
-  The history should show red→green→refactor.
+- Trunk-based on `main`, conventional commits, no long-lived branches. The commit body
+  carries the reasoning — what was considered and rejected — because that record travels
+  with the repository. Commit the failing test separately from the code that makes it pass.
 
 ## ADRs
 
