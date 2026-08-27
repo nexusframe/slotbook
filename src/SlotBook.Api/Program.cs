@@ -14,3 +14,7 @@ var app = builder.Build();
 app.MapGet("/", () => "Hello World!");
 
 app.Run();
+
+// Top-level statements compile into an internal Program class. WebApplicationFactory<T>
+// needs the entry point type to be visible from the test assembly.
+public partial class Program;

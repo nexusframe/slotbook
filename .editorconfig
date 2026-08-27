@@ -35,3 +35,8 @@ dotnet_diagnostic.IDE0055.severity = warning  # formatting
 # not, so code-style rules would fail the build on it. Mark the folder as generated instead.
 [**/Migrations/*.cs]
 generated_code = true
+
+# Test names are sentences (Method_Scenario_Expectation), not API identifiers. CA1707 guards
+# the naming of a public surface others compile against; a test assembly has none.
+[tests/**/*.cs]
+dotnet_diagnostic.CA1707.severity = none
