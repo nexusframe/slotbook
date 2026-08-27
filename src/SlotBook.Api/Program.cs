@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using SlotBook.Api.Endpoints;
 using SlotBook.Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,7 +12,7 @@ builder.Services.AddDbContext<SlotBookDbContext>(options =>
 
 var app = builder.Build();
 
-app.MapGet("/", () => "Hello World!");
+app.MapResourceEndpoints();
 
 app.Run();
 
