@@ -55,4 +55,46 @@ public sealed class ResourceEndpointsTests(SlotBookApiFixture fixture)
         Assert.Equal("Sala Sejmowa", fetched.GetProperty("name").GetString());
         Assert.Equal("Room", fetched.GetProperty("kind").GetString());
     }
+
+    [Fact]
+    public async Task Post_resources_returns_conflict_when_the_name_is_already_taken()
+    {
+        var client = fixture.CreateClient();
+
+        var first = await client.PostAsJsonAsync(
+            "/resources",
+            new { name = "Biurko 12", kind = "Desk" });
+
+        Assert.Equal(HttpStatusCode.Created, first.StatusCode);
+
+        var second = await client.PostAsJsonAsync(
+            "/resources",
+            new { name = "Biurko 12", kind = "Room" });
+
+        // The endpoint is not expected to look the name up first. It inserts and lets the
+        // unique index answer, which is the same argument the overlap rule will make at a
+        // larger scale: a check that precedes the write has a gap another writer fits into.
+        Assert.Equal(HttpStatusCode.Conflict, second.StatusCode);
+    }
+
+    [Fact]
+    public async Task Post_resources_returns_conflict_for_a_name_differing_only_by_case_and_trailing_space()
+    {
+        var client = fixture.CreateClient();
+
+        var first = await client.PostAsJsonAsync(
+            "/resources",
+            new { name = "Sala Konferencyjna", kind = "Room" });
+
+        Assert.Equal(HttpStatusCode.Created, first.StatusCode);
+
+        // Two distinct strings in C#. Under SQL_Latin1_General_CP1_CI_AS they are one index
+        // key: the collation is case-insensitive and string comparison ignores trailing
+        // blanks. Uniqueness here means what the database means by it, not what Equals does.
+        var second = await client.PostAsJsonAsync(
+            "/resources",
+            new { name = "sala konferencyjna ", kind = "Room" });
+
+        Assert.Equal(HttpStatusCode.Conflict, second.StatusCode);
+    }
 }
