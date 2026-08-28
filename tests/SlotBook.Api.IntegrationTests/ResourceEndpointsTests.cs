@@ -112,6 +112,35 @@ public sealed class ResourceEndpointsTests(SlotBookApiFixture fixture)
     }
 
     [Fact]
+    public async Task Post_resources_returns_bad_request_when_the_name_is_empty()
+    {
+        var client = fixture.CreateClient();
+
+        // Nothing is missing from this payload, so required has no objection to it: it asks
+        // whether a key is present in the JSON, not whether the value carries meaning. The
+        // empty name reaches the handler and is stored, and the measured answer today is 201.
+        var response = await client.PostAsJsonAsync(
+            "/resources",
+            new { name = "", kind = "Room" });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+
+        // Pinning the body and not only the status, because the body is the half that is
+        // missing: a rejected request answers text/plain with a stack trace in Development and
+        // nothing at all in Production, and neither shape is one a client can be written
+        // against. RFC 9457 problem+json, naming the member that failed, is the contract.
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+
+        var problem = await response.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal(400, problem.GetProperty("status").GetInt32());
+
+        var errors = problem.GetProperty("errors");
+        Assert.True(
+            errors.TryGetProperty("Name", out _),
+            $"Expected an entry for the Name member, got: {errors}");
+    }
+
+    [Fact]
     public async Task Put_resources_replaces_every_field_and_answers_no_content()
     {
         var client = fixture.CreateClient();
