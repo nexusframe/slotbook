@@ -31,7 +31,14 @@ public sealed class SlotBookApiFixture : IAsyncLifetime
         // Program.cs reads the connection string from IConfiguration, so the test host only
         // has to supply a different value — the DbContext registration itself is untouched.
         _factory = new WebApplicationFactory<Program>().WithWebHostBuilder(builder =>
-            builder.UseSetting("ConnectionStrings:SlotBook", BuildConnectionString()));
+        {
+            builder.UseSetting("ConnectionStrings:SlotBook", BuildConnectionString());
+
+            // EF Core logs every statement it runs at Information, which is worth having when
+            // a query is the suspect and noise when it is not. Warnings and errors still come
+            // through, and a failing assertion reports itself either way.
+            builder.UseSetting("Logging:LogLevel:Default", "Warning");
+        });
 
         using var scope = _factory.Services.CreateScope();
         var database = scope.ServiceProvider.GetRequiredService<SlotBookDbContext>().Database;
