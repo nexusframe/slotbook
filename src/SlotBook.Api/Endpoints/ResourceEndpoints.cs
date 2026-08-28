@@ -53,11 +53,7 @@ internal static class ResourceEndpoints
             // No lookup before the insert. A query that asks whether the name is free answers
             // for the moment it ran, and another writer fits into the gap between that answer
             // and this INSERT. The unique index answers for the moment the row lands.
-            //
-            // 2627 is a violated UNIQUE constraint, 2601 a violated unique index; which one
-            // arrives depends on how the rule was declared, so both mean the same thing here.
-            catch (DbUpdateException e)
-                when (e.InnerException is SqlException { Number: 2601 or 2627 })
+            catch (DbUpdateException e) when (IsUniqueViolation(e))
             {
                 return TypedResults.Conflict();
             }
@@ -96,12 +92,10 @@ internal static class ResourceEndpoints
             {
                 await db.SaveChangesAsync(cancellationToken);
             }
-            // The same index guards the UPDATE as guards the INSERT, so the same two numbers
-            // mean the same thing. Nothing here excludes the row being updated from the check,
-            // because there is no check: writing a key back where it already sat is not a
-            // duplicate, and the index knows that without being told.
-            catch (DbUpdateException e)
-                when (e.InnerException is SqlException { Number: 2601 or 2627 })
+            // The same index guards the UPDATE as guards the INSERT. Nothing here excludes the
+            // row being updated from the check, because there is no check: writing a key back
+            // where it already sat is not a duplicate, and the index knows that unprompted.
+            catch (DbUpdateException e) when (IsUniqueViolation(e))
             {
                 return TypedResults.Conflict();
             }
@@ -112,4 +106,14 @@ internal static class ResourceEndpoints
 
         return group;
     }
+
+    // 2627 is a violated UNIQUE constraint, 2601 a violated unique index. Which one arrives
+    // depends only on how the rule was declared, so a caller has no reason to tell them apart.
+    //
+    // The endpoints ask this question themselves rather than leaving it to middleware: both
+    // numbers say "some unique index", not which one, and this table has exactly one. A global
+    // translator would have to parse the message text to say more, and those are localised in
+    // the language the server was installed with.
+    private static bool IsUniqueViolation(DbUpdateException exception) =>
+        exception.InnerException is SqlException { Number: 2601 or 2627 };
 }
