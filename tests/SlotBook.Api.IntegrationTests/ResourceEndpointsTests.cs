@@ -97,4 +97,106 @@ public sealed class ResourceEndpointsTests(SlotBookApiFixture fixture)
 
         Assert.Equal(HttpStatusCode.Conflict, second.StatusCode);
     }
+
+    [Fact]
+    public async Task Put_resources_replaces_every_field_and_answers_no_content()
+    {
+        var client = fixture.CreateClient();
+
+        var created = await client.PostAsJsonAsync(
+            "/resources",
+            new { name = "Sala Alfa", kind = "Room" });
+
+        Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+
+        var location = created.Headers.Location;
+        Assert.NotNull(location);
+
+        // All three fields at once, including isActive: PUT replaces the representation rather
+        // than patching it, and deactivation travels this way instead of through an endpoint
+        // of its own. Sending isActive true again is what reactivates a resource.
+        var updated = await client.PutAsJsonAsync(
+            location,
+            new { name = "Sala Beta", kind = "Desk", isActive = false });
+
+        Assert.Equal(HttpStatusCode.NoContent, updated.StatusCode);
+
+        // 204 carries no body, so the only way to see whether anything happened is to read the
+        // resource back. A test that stopped at the status code would pass against an endpoint
+        // that returned 204 and wrote nothing.
+        var fetched = await client.GetAsync(location);
+        Assert.Equal(HttpStatusCode.OK, fetched.StatusCode);
+
+        var body = await fetched.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.Equal("Sala Beta", body.GetProperty("name").GetString());
+        Assert.Equal("Desk", body.GetProperty("kind").GetString());
+        Assert.False(body.GetProperty("isActive").GetBoolean());
+    }
+
+    [Fact]
+    public async Task Put_resources_returns_not_found_for_an_unknown_id()
+    {
+        var client = fixture.CreateClient();
+
+        var response = await client.PutAsJsonAsync(
+            "/resources/999999",
+            new { name = "Sala Widmo", kind = "Room", isActive = true });
+
+        // Not an insert. PUT to an address the server never handed out is a mistake by the
+        // client, and inventing the resource there would let it choose its own identifiers.
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Put_resources_returns_conflict_when_the_name_belongs_to_another_resource()
+    {
+        var client = fixture.CreateClient();
+
+        var occupant = await client.PostAsJsonAsync(
+            "/resources",
+            new { name = "Sala Gamma", kind = "Room" });
+
+        Assert.Equal(HttpStatusCode.Created, occupant.StatusCode);
+
+        var subject = await client.PostAsJsonAsync(
+            "/resources",
+            new { name = "Sala Delta", kind = "Room" });
+
+        Assert.Equal(HttpStatusCode.Created, subject.StatusCode);
+
+        var location = subject.Headers.Location;
+        Assert.NotNull(location);
+
+        // The same unique index guards the UPDATE, and for the same reason it guards the
+        // INSERT: the endpoint is not expected to look the name up first.
+        var response = await client.PutAsJsonAsync(
+            location,
+            new { name = "Sala Gamma", kind = "Room", isActive = true });
+
+        Assert.Equal(HttpStatusCode.Conflict, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Put_resources_returns_no_content_when_the_name_is_unchanged()
+    {
+        var client = fixture.CreateClient();
+
+        var created = await client.PostAsJsonAsync(
+            "/resources",
+            new { name = "Sala Epsilon", kind = "Room" });
+
+        Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+
+        var location = created.Headers.Location;
+        Assert.NotNull(location);
+
+        // The row already holds this name, so an implementation that checks for a duplicate
+        // without excluding the row being updated answers 409 here. The unique index does not
+        // make that mistake: UPDATE leaves the key where it already was.
+        var response = await client.PutAsJsonAsync(
+            location,
+            new { name = "Sala Epsilon", kind = "Desk", isActive = true });
+
+        Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
+    }
 }
