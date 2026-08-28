@@ -23,6 +23,19 @@ public sealed class ResourceEndpointsTests(SlotBookApiFixture fixture)
     }
 
     [Fact]
+    public async Task Get_resources_returns_not_found_for_an_unknown_id()
+    {
+        var client = fixture.CreateClient();
+
+        var response = await client.GetAsync("/resources/999999");
+
+        // The route constraint lets any integer through, so a request for a row that is not
+        // there reaches the handler and has to be answered rather than routed away. Written
+        // after the branch it covers, which is why it is green on arrival.
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
     public async Task Post_resources_returns_created_and_location_serves_the_new_resource()
     {
         var client = fixture.CreateClient();
