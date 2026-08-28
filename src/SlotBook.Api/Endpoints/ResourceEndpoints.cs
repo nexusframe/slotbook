@@ -71,6 +71,45 @@ internal static class ResourceEndpoints
         })
             .WithSummary("Creates a resource.");
 
+        group.MapPut("/{id:int}", async Task<Results<NoContent, NotFound, Conflict>> (
+            int id,
+            UpdateResourceRequest request,
+            SlotBookDbContext db,
+            CancellationToken cancellationToken) =>
+        {
+            // The tracked entity, not a projection. SaveChangesAsync writes what the change
+            // tracker sees differ from the values it loaded, so the object has to be the one
+            // the context is watching. FindAsync is the primary-key lookup: it returns an
+            // already-tracked instance without a round trip, and queries only otherwise.
+            var resource = await db.Resources.FindAsync([id], cancellationToken);
+
+            if (resource is null)
+            {
+                return TypedResults.NotFound();
+            }
+
+            resource.Name = request.Name;
+            resource.Kind = request.Kind;
+            resource.IsActive = request.IsActive;
+
+            try
+            {
+                await db.SaveChangesAsync(cancellationToken);
+            }
+            // The same index guards the UPDATE as guards the INSERT, so the same two numbers
+            // mean the same thing. Nothing here excludes the row being updated from the check,
+            // because there is no check: writing a key back where it already sat is not a
+            // duplicate, and the index knows that without being told.
+            catch (DbUpdateException e)
+                when (e.InnerException is SqlException { Number: 2601 or 2627 })
+            {
+                return TypedResults.Conflict();
+            }
+
+            return TypedResults.NoContent();
+        })
+            .WithSummary("Replaces a resource.");
+
         return group;
     }
 }
