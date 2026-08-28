@@ -199,4 +199,66 @@ public sealed class ResourceEndpointsTests(SlotBookApiFixture fixture)
 
         Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
     }
+
+    [Fact]
+    public async Task Delete_resources_deactivates_the_resource_and_answers_no_content()
+    {
+        var client = fixture.CreateClient();
+
+        var created = await client.PostAsJsonAsync(
+            "/resources",
+            new { name = "Biurko 40", kind = "Desk" });
+
+        Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+
+        var location = created.Headers.Location;
+        Assert.NotNull(location);
+
+        var deleted = await client.DeleteAsync(location);
+        Assert.Equal(HttpStatusCode.NoContent, deleted.StatusCode);
+
+        // The status code alone cannot tell deactivation from removal - both answer 204. The
+        // resource still being readable, with isActive false, is the whole difference, and a
+        // real delete would answer 404 here instead. Reservations will point at resources, so
+        // removing the row would either fail on the foreign key or orphan the history.
+        var fetched = await client.GetAsync(location);
+        Assert.Equal(HttpStatusCode.OK, fetched.StatusCode);
+
+        var body = await fetched.Content.ReadFromJsonAsync<JsonElement>();
+        Assert.False(body.GetProperty("isActive").GetBoolean());
+        Assert.Equal("Biurko 40", body.GetProperty("name").GetString());
+    }
+
+    [Fact]
+    public async Task Delete_resources_returns_not_found_for_an_unknown_id()
+    {
+        var client = fixture.CreateClient();
+
+        var response = await client.DeleteAsync("/resources/999999");
+
+        Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task Delete_resources_returns_no_content_when_the_resource_is_already_inactive()
+    {
+        var client = fixture.CreateClient();
+
+        var created = await client.PostAsJsonAsync(
+            "/resources",
+            new { name = "Biurko 41", kind = "Desk" });
+
+        Assert.Equal(HttpStatusCode.Created, created.StatusCode);
+
+        var location = created.Headers.Location;
+        Assert.NotNull(location);
+
+        var first = await client.DeleteAsync(location);
+        Assert.Equal(HttpStatusCode.NoContent, first.StatusCode);
+
+        // DELETE is idempotent: repeating it leaves the same state and owes the same answer.
+        // The row is still there, so 404 would claim something untrue about the resource.
+        var second = await client.DeleteAsync(location);
+        Assert.Equal(HttpStatusCode.NoContent, second.StatusCode);
+    }
 }

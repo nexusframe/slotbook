@@ -104,6 +104,28 @@ internal static class ResourceEndpoints
         })
             .WithSummary("Replaces a resource.");
 
+        group.MapDelete("/{id:int}", async Task<Results<NoContent, NotFound>> (
+            int id,
+            SlotBookDbContext db,
+            CancellationToken cancellationToken) =>
+        {
+            // Deactivation, not removal: reservations will point at resources, so deleting the
+            // row would either fail on the foreign key or orphan the history.
+            //
+            // One statement, and the count it returns answers whether the resource existed -
+            // no SELECT first, and no gap between asking and writing. Idempotence comes out of
+            // the same count: setting IsActive false on a row that already holds false still
+            // reports one row updated, so a repeated DELETE answers 204 with no code for it.
+            var affected = await db.Resources
+                .Where(resource => resource.Id == id)
+                .ExecuteUpdateAsync(
+                    setters => setters.SetProperty(resource => resource.IsActive, false),
+                    cancellationToken);
+
+            return affected == 0 ? TypedResults.NotFound() : TypedResults.NoContent();
+        })
+            .WithSummary("Deactivates a resource.");
+
         return group;
     }
 
