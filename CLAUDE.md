@@ -45,6 +45,15 @@ ASP.NET Core Identity.
 - Trunk-based on `main`, conventional commits, no long-lived branches. The commit body
   carries the reasoning — what was considered and rejected — because that record travels
   with the repository. Commit the failing test separately from the code that makes it pass.
+- **Test names carry the behaviour, comments carry the reason.** Name a case as a sentence a
+  reader who knows the domain would recognise, with the verb and route as its subject, and
+  lead with whatever the test is actually about — the status code where the status is the
+  point (`Post_resources_returns_conflict_when_the_name_is_already_taken`), the change to the
+  resource where it is not (`Put_resources_replaces_every_field_and_answers_no_content`).
+  Beyond that there is no slot order to fill: a fixed template pulls names towards HTTP
+  mechanics and away from behaviour. Why a case is worth pinning — the wrong implementation
+  it rules out, the platform behaviour it leans on — goes in a comment above the assertion,
+  never into the name.
 
 ## ADRs
 
