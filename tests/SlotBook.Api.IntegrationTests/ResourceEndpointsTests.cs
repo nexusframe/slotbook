@@ -141,6 +141,21 @@ public sealed class ResourceEndpointsTests(SlotBookApiFixture fixture)
     }
 
     [Fact]
+    public async Task Post_resources_answers_a_payload_missing_kind_in_problem_json()
+    {
+        var client = fixture.CreateClient();
+
+        // A different rejection from the one above and answered by different machinery. The
+        // absent key fails deserialisation, so binding throws and no validation filter ever
+        // runs. Pinned because the two paths have to agree on a body: a client that can read
+        // one rejection should not need a second parser for the other.
+        var response = await client.PostAsJsonAsync("/resources", new { name = "Sala Kolumnowa" });
+
+        Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+        Assert.Equal("application/problem+json", response.Content.Headers.ContentType?.MediaType);
+    }
+
+    [Fact]
     public async Task Put_resources_replaces_every_field_and_answers_no_content()
     {
         var client = fixture.CreateClient();

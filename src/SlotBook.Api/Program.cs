@@ -21,6 +21,16 @@ builder.Services.ConfigureHttpJsonOptions(options =>
     options.SerializerOptions.Converters.Add(
         new JsonStringEnumConverter(allowIntegerValues: false)));
 
+// Reads the DataAnnotations on request DTOs and rejects a payload that fails them before the
+// handler runs. New in .NET 10 for Minimal APIs: a source generator finds the validatable
+// parameter types at build time and the registration adds one endpoint filter per endpoint.
+builder.Services.AddValidation();
+
+// One error shape for the whole API. Both kinds of rejection write their body through
+// IProblemDetailsService, which nothing registers by default: without this line a validation
+// failure answers application/json and an unbindable payload answers text/plain.
+builder.Services.AddProblemDetails();
+
 var app = builder.Build();
 
 app.MapResourceEndpoints();

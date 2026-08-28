@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using SlotBook.Core;
 
 namespace SlotBook.Api.Contracts;
@@ -8,6 +9,8 @@ namespace SlotBook.Api.Contracts;
 // as false and silently deactivate whatever it touched.
 public sealed record UpdateResourceRequest
 {
+    [Required]
+    [StringLength(200)]
     public required string Name { get; init; }
 
     public required ResourceKind Kind { get; init; }

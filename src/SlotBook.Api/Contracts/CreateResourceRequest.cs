@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using SlotBook.Core;
 
 namespace SlotBook.Api.Contracts;
@@ -8,6 +9,14 @@ namespace SlotBook.Api.Contracts;
 // deserialisation failure, which the framework reports as 400.
 public sealed record CreateResourceRequest
 {
+    // required and [Required] answer different questions and both are needed. The keyword is
+    // read by the deserialiser and asks whether the key was in the payload; the attribute is
+    // read by validation and asks whether the value means anything, rejecting "" and "   ".
+    //
+    // The length mirrors HasMaxLength(200) on the entity. Left off, an over-long name reaches
+    // SQL Server and comes back as a truncation error, which is a 500 for what is a bad request.
+    [Required]
+    [StringLength(200)]
     public required string Name { get; init; }
 
     public required ResourceKind Kind { get; init; }
