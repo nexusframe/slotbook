@@ -13,10 +13,13 @@ public sealed record CreateResourceRequest
     // read by the deserialiser and asks whether the key was in the payload; the attribute is
     // read by validation and asks whether the value means anything, rejecting "" and "   ".
     //
-    // The length mirrors HasMaxLength(200) on the entity. Left off, an over-long name reaches
+    // The maximum mirrors HasMaxLength(200) on the entity. Left off, an over-long name reaches
     // SQL Server and comes back as a truncation error, which is a 500 for what is a bad request.
+    // The minimum changes no answer this API gives, since [Required] already rejects an empty
+    // name. It is there for the OpenAPI document, which otherwise publishes minLength 0 and
+    // tells a generated client that "" is acceptable input.
     [Required]
-    [StringLength(200)]
+    [StringLength(200, MinimumLength = 1)]
     public required string Name { get; init; }
 
     public required ResourceKind Kind { get; init; }

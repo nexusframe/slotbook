@@ -10,7 +10,7 @@ namespace SlotBook.Api.Contracts;
 public sealed record UpdateResourceRequest
 {
     [Required]
-    [StringLength(200)]
+    [StringLength(200, MinimumLength = 1)]
     public required string Name { get; init; }
 
     public required ResourceKind Kind { get; init; }

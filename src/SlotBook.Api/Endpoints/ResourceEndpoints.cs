@@ -65,7 +65,11 @@ internal static class ResourceEndpoints
                 new ResourceResponse(
                     resource.Id, resource.Name, resource.Kind, resource.IsActive));
         })
-            .WithSummary("Creates a resource.");
+            .WithSummary("Creates a resource.")
+            // The 400 is not inferred the way the other codes are. Validation rejects the
+            // payload without leaving metadata behind, so without this the document omits
+            // the one answer a client is most likely to have to handle. PUT says the same.
+            .ProducesValidationProblem();
 
         group.MapPut("/{id:int}", async Task<Results<NoContent, NotFound, Conflict>> (
             int id,
@@ -102,7 +106,8 @@ internal static class ResourceEndpoints
 
             return TypedResults.NoContent();
         })
-            .WithSummary("Replaces a resource.");
+            .WithSummary("Replaces a resource.")
+            .ProducesValidationProblem();
 
         group.MapDelete("/{id:int}", async Task<Results<NoContent, NotFound>> (
             int id,

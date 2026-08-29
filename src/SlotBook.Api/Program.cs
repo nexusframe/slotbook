@@ -1,5 +1,6 @@
 using System.Text.Json.Serialization;
 using Microsoft.EntityFrameworkCore;
+using Scalar.AspNetCore;
 using SlotBook.Api.Endpoints;
 using SlotBook.Infrastructure;
 
@@ -31,7 +32,18 @@ builder.Services.AddValidation();
 // failure answers application/json and an unbindable payload answers text/plain.
 builder.Services.AddProblemDetails();
 
+// Builds the OpenAPI document out of endpoint metadata: the Results<> unions supply the status
+// codes and their schemas, WithSummary the prose, the DataAnnotations above the constraints. No
+// endpoint is decorated for the generator's benefit.
+builder.Services.AddOpenApi();
+
 var app = builder.Build();
+
+// Two calls doing separate jobs. MapOpenApi serves the document; Scalar is a browser client
+// that reads it and renders it. Neither is gated on IsDevelopment: the README sends a reader to
+// the UI after docker compose up, and the container runs in Production.
+app.MapOpenApi();
+app.MapScalarApiReference();
 
 app.MapResourceEndpoints();
 
