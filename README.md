@@ -66,7 +66,8 @@ dotnet test
 The suite runs against a real SQL Server started by
 [Testcontainers](https://dotnet.testcontainers.org/), in CI as well as locally. The EF Core
 in-memory provider enforces neither constraints nor transactions, so it cannot settle the
-question this project is about: whether the database itself refuses the second booking.
+question this project is about: whether the database itself refuses the second booking. See
+[ADR-0004](docs/decisions/0004-testcontainers-over-in-memory.md).
 
 The resource endpoints are covered end to end today, including the 409 that comes out of a
 unique index rather than out of a check in the handler. The overlap rule and the concurrent
