@@ -1,0 +1,19 @@
+# Default deny. The build context carries only what restore and publish read, so anything added
+# to the repository later - a new file holding a secret, a scratch directory - stays out of the
+# image without anyone remembering to write a rule for it.
+#
+# The concrete leak this prevents today: .env holds the SQL Server SA password.
+*
+
+!global.json
+!Directory.Build.props
+!Directory.Packages.props
+!dotnet-tools.json
+!.editorconfig
+!src
+
+# Re-excluded after src, because host build output would otherwise travel into the container.
+# obj/project.assets.json records absolute paths from the machine that ran restore, and inside
+# the container those paths do not exist.
+**/bin
+**/obj

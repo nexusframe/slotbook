@@ -19,7 +19,42 @@ services:
       start_period: 20s
     restart: unless-stopped
 
-# The api service is added in week 1, once the project and Dockerfile exist.
+  # Applies every pending migration once, then exits. The schema is changed by a job that owns
+  # nothing else, rather than by the instance that is about to serve traffic.
+  migrator:
+    build: .
+    image: slotbook-api
+    depends_on:
+      sqlserver:
+        condition: service_healthy
+    # entrypoint, not command: command replaces only CMD, which the image appends as arguments to
+    # ENTRYPOINT. The API would start, read the arguments as configuration and exit cleanly.
+    entrypoint: ["/migrator/migrate"]
+    # The bundle carries the migrations but not the DbContext: it runs Program.cs to build one,
+    # so it reads configuration exactly as the API does. Hence an environment variable rather
+    # than the --connection argument, which arrives after Program.cs has already thrown.
+    environment:
+      ConnectionStrings__SlotBook: Server=sqlserver,1433;Database=SlotBook;User Id=sa;Password=${MSSQL_SA_PASSWORD:?set MSSQL_SA_PASSWORD in .env};TrustServerCertificate=True
+    # Quoted, because YAML reads a bare no as false. Explicit next to a service that restarts
+    # itself: a job that comes back to life has no completion for anything to depend on.
+    restart: "no"
+
+  api:
+    build: .
+    image: slotbook-api
+    depends_on:
+      # Only on the migrator. It in turn waits for a healthy sqlserver, so the database condition
+      # is already met by the time this one is; naming both would read as two separate needs.
+      migrator:
+        condition: service_completed_successfully
+    environment:
+      ConnectionStrings__SlotBook: Server=sqlserver,1433;Database=SlotBook;User Id=sa;Password=${MSSQL_SA_PASSWORD:?set MSSQL_SA_PASSWORD in .env};TrustServerCertificate=True
+    ports:
+      # The image binds 8080: the container runs as a non-root user, which cannot take a port
+      # below 1024. ASPNETCORE_ENVIRONMENT is deliberately unset - absent, it means Production,
+      # and launchSettings.json does not reach the image to override it.
+      - "8080:8080"
+    restart: unless-stopped
 
 volumes:
   mssql-data:
