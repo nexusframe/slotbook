@@ -4,6 +4,8 @@ public readonly record struct TimeSlot
 {
     public TimeSlot(DateTimeOffset start, DateTimeOffset end)
     {
+        ArgumentOutOfRangeException.ThrowIfLessThanOrEqual(end, start);
+
         Start = start;
         End = end;
     }
