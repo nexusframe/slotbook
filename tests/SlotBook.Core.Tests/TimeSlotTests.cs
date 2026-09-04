@@ -25,6 +25,29 @@ public sealed class TimeSlotTests
         Assert.True(morning.Overlaps(late));
     }
 
+    [Fact]
+    public void A_slot_that_ends_before_it_starts_is_rejected()
+    {
+        // The constructor is the only way in, because the properties carry no init setters, so
+        // the check placed there holds for every instance rather than for the callers who
+        // remember to run it.
+        var error = Assert.Throws<ArgumentOutOfRangeException>(
+            () => { _ = new TimeSlot(At(11), At(10)); });
+
+        Assert.Equal("end", error.ParamName);
+    }
+
+    [Fact]
+    public void A_zero_length_slot_is_rejected()
+    {
+        // Not obviously wrong, which is why it is worth pinning. Both comparisons in Overlaps
+        // are strict, so an empty slot conflicts with nothing: it would occupy a room without
+        // blocking anybody, and the damage would surface later as a double booking.
+        var error = Assert.Throws<ArgumentOutOfRangeException>(
+            () => { _ = new TimeSlot(At(10), At(10)); });
+
+        Assert.Equal("end", error.ParamName);
+    }
 
     // The date is arbitrary; only the hours carry meaning. Offset zero keeps the fixture out of
     // the machine's time zone.
