@@ -11,5 +11,10 @@ public readonly record struct TimeSlot
     public DateTimeOffset Start { get; }
     public DateTimeOffset End { get; }
 
-    public bool Overlaps(TimeSlot other) => throw new NotImplementedException();
+    // Half-open [Start, End): both comparisons are strict, so a slot ending exactly when
+    // another begins is not a conflict.
+    public bool Overlaps(TimeSlot other)
+    {
+        return Start < other.End && other.Start < End;
+    }
 }
