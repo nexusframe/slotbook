@@ -46,6 +46,7 @@ app.MapOpenApi();
 app.MapScalarApiReference();
 
 app.MapResourceEndpoints();
+app.MapReservationEndpoints();
 
 app.Run();
 
