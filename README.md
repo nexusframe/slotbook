@@ -10,6 +10,12 @@ the same time**, and that the rule is enforced by a constraint in the database r
 a check in application code — a difference that only shows itself under concurrent writes,
 and only against a real database.
 
+A booking is stored as one row per quarter hour it occupies, under a key that a second booking
+for the same quarter hour cannot repeat. That is why periods have to start and end on a fifteen
+minute boundary, and why nothing in the handler compares one period with another. The reasoning,
+with the two locking designs that lost, is in
+[ADR-0003](docs/decisions/0003-preventing-double-booking.md).
+
 ## Run it
 
 ```bash
@@ -69,9 +75,11 @@ in-memory provider enforces neither constraints nor transactions, so it cannot s
 question this project is about: whether the database itself refuses the second booking. See
 [ADR-0004](docs/decisions/0004-testcontainers-over-in-memory.md).
 
-The resource endpoints are covered end to end today, including the 409 that comes out of a
-unique index rather than out of a check in the handler. The overlap rule and the concurrent
-booking test arrive with reservations.
+The flagship case is `ConcurrentBookingTests`: eight requests ask for the same hour at the same
+moment, and exactly one gets `201 Created`. The other seven get `409 Conflict`, which they can
+only get after the database has refused a duplicate key. The test also counts the surviving
+rows, because status codes alone would pass a handler that reported a conflict and wrote
+anyway.
 
 ## Design decisions
 
