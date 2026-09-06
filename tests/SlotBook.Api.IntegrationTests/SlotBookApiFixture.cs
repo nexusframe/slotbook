@@ -24,6 +24,12 @@ public sealed class SlotBookApiFixture : IAsyncLifetime
         (_factory ?? throw new InvalidOperationException("Fixture was not initialised."))
             .CreateClient();
 
+    // For tests about the schema rather than about an endpoint. They need a DbContext, and the
+    // one the API uses is registered scoped, so a scope is the only honest way to get one.
+    public IServiceScope CreateScope() =>
+        (_factory ?? throw new InvalidOperationException("Fixture was not initialised."))
+            .Services.CreateScope();
+
     public async Task InitializeAsync()
     {
         await _sqlServer.StartAsync();

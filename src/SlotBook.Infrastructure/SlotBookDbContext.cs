@@ -7,6 +7,10 @@ public class SlotBookDbContext(DbContextOptions<SlotBookDbContext> options) : Db
 {
     public DbSet<Resource> Resources => Set<Resource>();
 
+    public DbSet<Reservation> Reservations => Set<Reservation>();
+
+    public DbSet<ReservationSlot> ReservationSlots => Set<ReservationSlot>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(SlotBookDbContext).Assembly);
