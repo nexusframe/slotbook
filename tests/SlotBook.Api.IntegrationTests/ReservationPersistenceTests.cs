@@ -4,6 +4,8 @@ using Microsoft.Extensions.DependencyInjection;
 using SlotBook.Core;
 using SlotBook.Infrastructure;
 
+using static SlotBook.Api.IntegrationTests.Instants;
+
 namespace SlotBook.Api.IntegrationTests;
 
 // About the schema, not about an endpoint. What is pinned here is what the database refuses,
@@ -91,7 +93,4 @@ public sealed class ReservationPersistenceTests(SlotBookApiFixture fixture)
 
         return resource.Id;
     }
-
-    private static DateTimeOffset At(int hour, int minute = 0) =>
-        new(2026, 9, 5, hour, minute, 0, TimeSpan.Zero);
 }

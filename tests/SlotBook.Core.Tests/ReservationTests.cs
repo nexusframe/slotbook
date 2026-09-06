@@ -1,3 +1,5 @@
+using static SlotBook.Core.Tests.Instants;
+
 namespace SlotBook.Core.Tests;
 
 public sealed class ReservationTests
@@ -37,9 +39,4 @@ public sealed class ReservationTests
         // the booking was for. An implementation that kept only the expanded rows would lose it.
         Assert.Equal(period, reservation.Period);
     }
-
-    // The date is arbitrary; only the time of day carries meaning. Offset zero keeps the fixture
-    // out of the machine's time zone.
-    private static DateTimeOffset At(int hour, int minute = 0) =>
-        new(2026, 9, 4, hour, minute, 0, TimeSpan.Zero);
 }

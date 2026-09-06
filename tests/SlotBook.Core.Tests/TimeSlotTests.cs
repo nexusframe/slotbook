@@ -1,3 +1,5 @@
+using static SlotBook.Core.Tests.Instants;
+
 namespace SlotBook.Core.Tests;
 
 public sealed class TimeSlotTests
@@ -48,8 +50,4 @@ public sealed class TimeSlotTests
 
         Assert.Equal("end", error.ParamName);
     }
-
-    // The date is arbitrary; only the hours carry meaning. Offset zero keeps the fixture out of
-    // the machine's time zone.
-    private static DateTimeOffset At(int hour) => new(2026, 9, 4, hour, 0, 0, TimeSpan.Zero);
 }

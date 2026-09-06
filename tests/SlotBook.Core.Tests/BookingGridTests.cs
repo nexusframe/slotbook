@@ -1,3 +1,5 @@
+using static SlotBook.Core.Tests.Instants;
+
 namespace SlotBook.Core.Tests;
 
 public sealed class BookingGridTests
@@ -48,9 +50,4 @@ public sealed class BookingGridTests
         Assert.Throws<ArgumentException>(
             () => { _ = BookingGrid.IndexesFor(new TimeSlot(At(10, 5), At(11))); });
     }
-
-    // The date is arbitrary; only the time of day carries meaning. Offset zero keeps the fixture
-    // out of the machine's time zone, except where a test is about the offset itself.
-    private static DateTimeOffset At(int hour, int minute = 0) =>
-        new(2026, 9, 4, hour, minute, 0, TimeSpan.Zero);
 }
