@@ -20,7 +20,7 @@ internal static class ResourceEndpoints
                 .Select(resource => new ResourceResponse(
                     resource.Id, resource.Name, resource.Kind, resource.IsActive))
                 .ToListAsync(cancellationToken))
-            .WithSummary("Lists every resource, active or not.");
+            .WithSummary("Lists every resource, active or not");
 
         group.MapGet("/{id:int}", async Task<Results<Ok<ResourceResponse>, NotFound>> (
             int id,
@@ -35,7 +35,7 @@ internal static class ResourceEndpoints
 
             return found is null ? TypedResults.NotFound() : TypedResults.Ok(found);
         })
-            .WithSummary("Reads one resource by id.");
+            .WithSummary("Reads one resource by id");
 
         group.MapPost("/", async Task<Results<Created<ResourceResponse>, Conflict>> (
             CreateResourceRequest request,
@@ -65,7 +65,7 @@ internal static class ResourceEndpoints
                 new ResourceResponse(
                     resource.Id, resource.Name, resource.Kind, resource.IsActive));
         })
-            .WithSummary("Creates a resource.")
+            .WithSummary("Creates a resource")
             // The 400 is not inferred the way the other codes are. Validation rejects the
             // payload without leaving metadata behind, so without this the document omits
             // the one answer a client is most likely to have to handle. PUT says the same.
@@ -106,7 +106,7 @@ internal static class ResourceEndpoints
 
             return TypedResults.NoContent();
         })
-            .WithSummary("Replaces a resource.")
+            .WithSummary("Replaces a resource")
             .ProducesValidationProblem();
 
         group.MapDelete("/{id:int}", async Task<Results<NoContent, NotFound>> (
@@ -129,7 +129,7 @@ internal static class ResourceEndpoints
 
             return affected == 0 ? TypedResults.NotFound() : TypedResults.NoContent();
         })
-            .WithSummary("Deactivates a resource.");
+            .WithSummary("Deactivates a resource");
 
         return group;
     }

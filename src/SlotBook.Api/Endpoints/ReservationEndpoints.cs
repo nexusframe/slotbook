@@ -32,7 +32,7 @@ internal static class ReservationEndpoints
 
             return found is null ? TypedResults.NotFound() : TypedResults.Ok(found);
         })
-            .WithSummary("Reads one reservation by id.");
+            .WithSummary("Reads one reservation by id");
 
         group.MapPost("/", async Task<Results<Created<ReservationResponse>, ValidationProblem, Conflict>> (
             CreateReservationRequest request,
@@ -109,7 +109,7 @@ internal static class ReservationEndpoints
             // Location something the server hands back and the client cannot predict.
             return TypedResults.Created($"/reservations/{reservation.Id}", ToResponse(reservation));
         })
-            .WithSummary("Books a resource for a period.");
+            .WithSummary("Books a resource for a period");
 
         return group;
     }
