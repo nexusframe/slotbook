@@ -35,7 +35,20 @@ builder.Services.AddProblemDetails();
 // Builds the OpenAPI document out of endpoint metadata: the Results<> unions supply the status
 // codes and their schemas, WithSummary the prose, the DataAnnotations above the constraints. No
 // endpoint is decorated for the generator's benefit.
-builder.Services.AddOpenApi();
+//
+// Everything except Info comes from that metadata. The title would otherwise be the assembly
+// name, which is an implementation detail on the front page of the API, so a document
+// transformer sets it - the only hook the package offers for the document as a whole.
+builder.Services.AddOpenApi(options =>
+    options.AddDocumentTransformer((document, context, cancellationToken) =>
+    {
+        document.Info.Title = "SlotBook";
+        document.Info.Description =
+            "Booking API for meeting rooms and desks. Periods start and end on a 15 minute "
+            + "boundary, and two reservations may never overlap on one resource.";
+
+        return Task.CompletedTask;
+    }));
 
 var app = builder.Build();
 
